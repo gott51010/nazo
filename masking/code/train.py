@@ -1,32 +1,15 @@
 import subprocess
 from glob import glob
-
 import pandas as pd
 import regex
-import spacy
 from sklearn.model_selection import train_test_split
-
 # import TensorFlow as tf
+import spacy
+import pickle
 
-# import nagisa
-#
-# text = 'Pythonで簡単に使えるツールです'
-# words = nagisa.tagging(text)
-# print(words)
-# #=> Python/名詞 で/助詞 簡単/形状詞 に/助動詞 使える/動詞 ツール/名詞 です/助動詞
-#
-# # Get a list of words
-# print(words.words)
-# #=> ['Python', 'で', '簡単', 'に', '使える', 'ツール', 'です']
-#
-# # Get a list of POS-tags
-# print(words.postags)
-# #=> ['名詞', '助詞', '形状詞', '助動詞', '動詞', '名詞', '助動詞']
-
-
-
-# nlp = spacy.load('ja_ginza')
-#
-# train_paths = glob('../data/train/*')
-# test_paths = glob('../data/test/*')
-
+nlp = spacy.load('ja_ginza')
+doc = nlp('銀座でランチをご一緒しましょう。')
+for sent in doc.sents:
+    for token in sent:
+        print(token.i, token.orth_, token.lemma_, token.pos_, token.tag_, token.dep_, token.head.i)
+    print('EOS')
