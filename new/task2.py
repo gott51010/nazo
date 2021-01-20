@@ -77,8 +77,56 @@ print("只有一值的特征",one_value_fea)  # ['policyCode'] 公开可用的�
 # ===========================截至目前为止的综合分析==============================
 # 47列数据中有22列都缺少数据，‘policyCode’具有一个唯一值（或全部缺失）。有很多连续变量和一些分类变量。
 
+# 查看特征的数值类型有哪些，对象类型有哪些
+numerical_fea = list(data_train.select_dtypes(exclude=['object']).columns)
+category_fea = list(filter(lambda x: x not in numerical_fea,list(data_train.columns)))
+print(numerical_fea)
+print(data_train.grade)
 
+#过滤数值型类别特征
+def get_numerical_serial_fea(data, feas):
+    numerical_serial_fea = []
+    numerical_noserial_fea = []
+    for fea in feas:
+        temp = data[fea].nunique()
+        if temp <= 10:
+            numerical_noserial_fea.append(fea)
+            continue
+        numerical_serial_fea.append(fea)
+    return numerical_serial_fea, numerical_noserial_fea
 
+numerical_serial_fea, numerical_noserial_fea = get_numerical_serial_fea(data_train, numerical_fea)
+# 值型变量分析，数值型肯定是包括连续型变量和离散型变量的，找出来
+print(numerical_serial_fea)
+print(data_train['term'].value_counts(),"离散型变量")
+print(data_train['homeOwnership'].value_counts(),"离散型变量")
+print(data_train['verificationStatus'].value_counts(),"离散型变量")
+print(data_train['policyCode'].value_counts(),"离散型变量，无用，全部一个值")
+print(data_train['n11'].value_counts(),"离散型变量，相差悬殊，用不用再分析")
+print(data_train['n12'].value_counts(),"离散型变量，相差悬殊，用不用再分析")
 
+# 单一变量分布可视化
+# plt.figure(figsize=(8, 8))
+# sns.barplot(data_train["employmentLength"].value_counts(dropna=False)[:20],
+# data_train["employmentLength"].value_counts(dropna=False).keys()[:20])
+# plt.show()
 
+# 时间格式数据处理及查看
+#转化成时间格式
+data_train['issueDate'] = pd.to_datetime(data_train['issueDate'],format='%Y-%m-%d')
+startdate = datetime.datetime.strptime('2007-06-01', '%Y-%m-%d')
+data_train['issueDateDT'] = data_train['issueDate'].apply(lambda x: x-startdate).dt.days
 
+data_test_a['issueDate'] = pd.to_datetime(data_train['issueDate'],format='%Y-%m-%d')
+startdate = datetime.datetime.strptime('2007-06-01', '%Y-%m-%d')
+data_test_a['issueDateDT'] = data_test_a['issueDate'].apply(lambda x: x-startdate).dt.days
+
+plt.hist(data_train['issueDateDT'], label='train')
+plt.hist(data_test_a['issueDateDT'], label='test')
+plt.legend()
+plt.title('Distribution of issueDateDT dates')
+#train 和 test issueDateDT 日期有重叠 所以使用基于时间的分割进行验证是不明智的
+
+import pandas_profiling
+pfr = pandas_profiling.ProfileReport(data_train)
+pfr.to_file("./example.html")
